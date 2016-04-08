@@ -1,0 +1,10 @@
+Debug/
+x64/
+*.bmp
+*.jpg
+*.sdf
+*.sln
+*.suo
+*.user
+*.vcxproj
+*.filters
