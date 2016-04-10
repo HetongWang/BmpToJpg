@@ -13,6 +13,8 @@ namespace jpeg
     void quantize(double **block, BYTE quan[64]);
 
     int* zigzagTransform(double **block);
+    int numberOfSetBits(int i);
+    unsigned short numberEncoding(int n);
 
     class JpegEncoder
     {

@@ -50,8 +50,8 @@ namespace jpeg
             x = i / 8;
             y = i % 8;
             block[x][y] = block[x][y] / quan[i];
-            if (block[x][y] > 65535 || block[x][y] < -65536) 
-                block[x][y] > 0 ? block[x][y] = 65535 : block[x][y] = -65536;
+            if (block[x][y] > 32767 || block[x][y] < -32767) 
+                block[x][y] > 0 ? block[x][y] = 32767 : block[x][y] = -32767;
         }
     }
 
@@ -68,7 +68,34 @@ namespace jpeg
 
         return res;
     }
+
+    int numberOfSetBits(int n)
+    {
+        int i = 2, res = 1;
+        while (abs(n) > i)
+        {
+            i *= 2;
+            res++;
+        }
+        return res;
+    }
     
+    unsigned short numberEncoding(int n)
+    {
+        unsigned short res;
+        int bits = numberOfSetBits(n);
+        res = abs(n);
+        if (n < 0)
+        {
+            unsigned short t = 0;
+            for (int i = 0; i < bits; i++)
+                t = (t << 1) + 1;
+
+            res = t - res;
+        }
+        return res;
+    }
+
     void  JpegEncoder::subsample()
     {
         int i, j, ii, jj;
@@ -267,6 +294,8 @@ namespace jpeg
         {
             int y_current = y_zigzag[i][0];
             int y_delta = y_current - y_previous;
+            if (y_delta > 32767 || y_delta < -32767) 
+                y_delta > 0 ? y_delta = 32767 : y_delta = -32767;
             y_previous = y_zigzag[i][0];
             y_zigzag[i][0] = y_delta;
         }
@@ -277,11 +306,15 @@ namespace jpeg
         {
             int cr_current = cr_zigzag[i][0];
             int cr_delta = cr_current - cr_previous;
+            if (cr_delta > 32767 || cr_delta < -32767) 
+                cr_delta > 0 ? cr_delta = 32767 : cr_delta = -32767;
             cr_previous = cr_zigzag[i][0];
             cr_zigzag[i][0] = cr_delta;
 
             int cb_current = cb_zigzag[i][0];
             int cb_delta = cb_current - cb_previous;
+            if (cb_delta > 32767 || cb_delta < -32767) 
+                cb_delta > 0 ? cb_delta = 32767 : cb_delta = -32767;
             cb_previous = cb_zigzag[i][0];
             cb_zigzag[i][0] = cb_delta;
         }
@@ -291,6 +324,8 @@ namespace jpeg
     {
         vector<int> pair;
         pair.push_back(zero_count);
+        n = n > 32767 ? 32767 : n;
+        n = n < -32767 ? -32767 : n;
         pair.push_back(n);
         ac.push_back(pair);
     }
@@ -311,7 +346,7 @@ namespace jpeg
                         continue;
                     }
                     zero_count++;
-                    if (zero_count == 15)
+                    if (zero_count == 16)
                     {
                         zero_pair++;
                         zero_count = 0;
@@ -331,6 +366,8 @@ namespace jpeg
             }
         }
     }
+
+    
 
     void JpegEncoder::encodeImage(Pixel **matrix, int height, int width)
     {
