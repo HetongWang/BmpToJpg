@@ -4,6 +4,7 @@
 #include "Jpeg.h"
 #include <string>
 #include <fstream>
+#include <vector>
 
 namespace jpeg
 {
@@ -41,6 +42,9 @@ namespace jpeg
         int **y_zigzag;
         int **cb_zigzag;
         int **cr_zigzag;
+        std::vector<std::vector<int>> y_ac;
+        std::vector<std::vector<int>> cr_ac;
+        std::vector<std::vector<int>> cb_ac;
 
     private:
         Pixel **origin;
@@ -49,7 +53,8 @@ namespace jpeg
         void dctAndQuan();
         void zigzag();
         void deltaEncoding();
-        void RLE();
+        void RLE(int **zigzag, int block_count, std::vector<std::vector<int>>&ac);
+        void RLEAddPair(int zero_count, int n, std::vector<std::vector<int>> &ac);
     };
 }
 

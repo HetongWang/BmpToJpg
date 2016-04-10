@@ -3,6 +3,7 @@
 #include <iostream>
 
 using std::cout;
+using std::vector;
 using std::string;
 
 namespace jpeg
@@ -261,19 +262,74 @@ namespace jpeg
 
     void JpegEncoder::deltaEncoding()
     {
-        int previous = y_zigzag[0][0];
+        int y_previous = y_zigzag[0][0];
         for (int i = 1; i < y_block_count; i++)
         {
-            int current = y_zigzag[i][0];
-            int delta = current - previous;
-            previous = y_zigzag[i][0];
-            y_zigzag[i][0] = delta;
+            int y_current = y_zigzag[i][0];
+            int y_delta = y_current - y_previous;
+            y_previous = y_zigzag[i][0];
+            y_zigzag[i][0] = y_delta;
+        }
+
+        int cr_previous = cr_zigzag[0][0];
+        int cb_previous = cb_zigzag[0][0];
+        for (int i = 1; i < c_block_count; i++)
+        {
+            int cr_current = cr_zigzag[i][0];
+            int cr_delta = cr_current - cr_previous;
+            cr_previous = cr_zigzag[i][0];
+            cr_zigzag[i][0] = cr_delta;
+
+            int cb_current = cb_zigzag[i][0];
+            int cb_delta = cb_current - cb_previous;
+            cb_previous = cb_zigzag[i][0];
+            cb_zigzag[i][0] = cb_delta;
         }
     }
 
-    void JpegEncoder::RLE()
+    void JpegEncoder::RLEAddPair(int zero_count, int n, vector<vector<int>> &ac)
     {
+        vector<int> pair;
+        pair.push_back(zero_count);
+        pair.push_back(n);
+        ac.push_back(pair);
+    }
 
+    void JpegEncoder::RLE(int **zigzag, int block_count, vector<vector<int>> &ac)
+    {
+        for (int i = 0; i < block_count; i++)
+        {
+            int zero_count = 0;
+            int zero_pair = 0;
+            for (int j = 1; j < 64; j++)
+            {
+                if (zigzag[i][j] == 0)
+                {
+                    if (j == 63)
+                    {
+                        RLEAddPair(0, 0, ac);
+                        continue;
+                    }
+                    zero_count++;
+                    if (zero_count == 15)
+                    {
+                        zero_pair++;
+                        zero_count = 0;
+                    }
+                }
+                else
+                {
+                    if (zero_pair != 0)
+                    {
+                        for (int k = 0; k < zero_pair; k++)
+                            RLEAddPair(15, 0, ac);
+                        zero_pair = 0;
+                    }
+                    RLEAddPair(zero_count, zigzag[i][j], ac);
+                    zero_count = 0;
+                }
+            }
+        }
     }
 
     void JpegEncoder::encodeImage(Pixel **matrix, int height, int width)
@@ -286,6 +342,9 @@ namespace jpeg
         dctAndQuan();
         zigzag();
         deltaEncoding();
+        RLE(y_zigzag, y_block_count, y_ac);
+        RLE(cr_zigzag, c_block_count, cr_ac);
+        RLE(cb_zigzag, c_block_count, cb_ac);
     }
 
     JpegEncoder::JpegEncoder(int quality, string subsampling) :

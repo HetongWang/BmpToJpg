@@ -3,10 +3,10 @@
 
 namespace jpeg
 {
-    void idct(float **block)
+    void idct(double **block)
     {
         double a;
-        float f[8][8];
+        double f[8][8];
         for (int x = 0; x < 8; x++)
         for (int y = 0; y < 8; y++)
         {
@@ -22,7 +22,7 @@ namespace jpeg
             block[u][v] = f[u][v];
     }
 
-    void iquantize(float ** block, BYTE quan[64])
+    void iquantize(double ** block, BYTE quan[64])
     {
         int x, y;
         for (int i = 0; i < 64; i++) {
@@ -99,28 +99,28 @@ namespace jpeg
         this->encoder = encoder;
 
         // init all blocks
-        y_block = new float**[encoder->y_block_count];
+        y_block = new double**[encoder->y_block_count];
         for (i = 0; i < encoder->y_block_count; i++)
         {
-            y_block[i] = new float *[8];
+            y_block[i] = new double *[8];
             for (j = 0; j < 8; j++)
             {
-                y_block[i][j] = new float[8];
+                y_block[i][j] = new double[8];
                 for (k = 0; k < 8; k++)
                     y_block[i][j][k] = encoder->y_block[i][j][k];
             }
         }
 
-        cr_block = new float **[encoder->c_block_count];
-        cb_block = new float **[encoder->c_block_count];
+        cr_block = new double **[encoder->c_block_count];
+        cb_block = new double **[encoder->c_block_count];
         for (i = 0; i < encoder->c_block_count; i++)
         {
-            cr_block[i] = new float *[8];
-            cb_block[i] = new float *[8];
+            cr_block[i] = new double *[8];
+            cb_block[i] = new double *[8];
             for (j = 0; j < 8; j++)
             {
-                cr_block[i][j] = new float[8];
-                cb_block[i][j] = new float[8];
+                cr_block[i][j] = new double[8];
+                cb_block[i][j] = new double[8];
                 for (k = 0; k < 8; k++)
                 {
                     cr_block[i][j][k] = encoder->cr_block[i][j][k];

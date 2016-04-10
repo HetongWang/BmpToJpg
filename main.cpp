@@ -21,6 +21,8 @@ int main(int argc, char *argv) {
     //    std::cout << res[i] << ' ';
     //std::cout << '\n';
     //std::cout << encoder->y_zigzag[3][0] << ' ';
+    for (int i = 0; i < encoder->y_ac.size(); i++)
+        std::cout << encoder->y_ac[i][0] << ' ' << encoder->y_ac[i][1] << ' ' << '\n';
 
     int a;
     std::cin >> a;

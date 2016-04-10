@@ -6,8 +6,8 @@
 
 namespace jpeg
 {
-    void idct(float **block);
-    void iquantize(float **block, BYTE quan[64]);
+    void idct(double **block);
+    void iquantize(double **block, BYTE quan[64]);
 
     class JpegDecoder
     {
@@ -18,9 +18,9 @@ namespace jpeg
         Pixel **origin;
     private:
         JpegEncoder *encoder;
-        float ***y_block;
-        float ***cb_block;
-        float ***cr_block;
+        double ***y_block;
+        double ***cb_block;
+        double ***cr_block;
         void idctAndIquan();
     };
 }
