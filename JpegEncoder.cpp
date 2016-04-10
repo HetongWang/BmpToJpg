@@ -2,7 +2,7 @@
 #include <string.h>
 #include <iostream>
 
-using std::count;
+using std::cout;
 using std::string;
 
 namespace jpeg
@@ -15,7 +15,7 @@ namespace jpeg
                             20, 22, 33, 38, 46, 51, 55, 60, 
                             21, 34, 37, 47, 50, 56, 59, 61, 
                             35, 36, 48, 49, 57, 58, 62, 63};
-    float C(int u)
+    double C(int u)
     {
         if (u == 0)
             return (1.0 / sqrt(2.0));
@@ -23,10 +23,10 @@ namespace jpeg
             return 1.0;
     }
 
-    void dct(float **block)  // the overflow occur here
+    void dct(double **block) 
     {
-        float a;
-        float F[8][8];
+        double a;
+        double F[8][8];
         for (int u = 0; u < 8; u++)
         for (int v = 0; v < 8; v++)
         {
@@ -42,21 +42,19 @@ namespace jpeg
             block[u][v] = F[u][v];
     }
 
-    void quantize(float **block, BYTE quan[64]) 
+    void quantize(double **block, BYTE quan[64]) 
     {
         int x, y;
         for (int i = 0; i < 64; i++) {
             x = i / 8;
             y = i % 8;
-            if (isnan(block[x][y]))
-                std::cout << "asdfasdf" << block[x][y] / quan[i]<< '\n';
             block[x][y] = block[x][y] / quan[i];
             if (block[x][y] > 65535 || block[x][y] < -65536) 
                 block[x][y] > 0 ? block[x][y] = 65535 : block[x][y] = -65536;
         }
     }
 
-    int* zigzagTransform(float **block)
+    int* zigzagTransform(double **block)
     {
         int* res = new int[64];
         for (int i = 0; i < 8; i++)
@@ -114,24 +112,24 @@ namespace jpeg
         }
 
         // init all blocks
-        y_block = new float**[y_block_count];
+        y_block = new double**[y_block_count];
         for (i = 0; i < y_block_count; i++)
         {
-            y_block[i] = new float *[8];
+            y_block[i] = new double *[8];
             for (j = 0; j < 8; j++)
-                y_block[i][j] = new float[8];
+                y_block[i][j] = new double[8];
         }
 
-        cr_block = new float **[c_block_count];
-        cb_block = new float **[c_block_count];
+        cr_block = new double **[c_block_count];
+        cb_block = new double **[c_block_count];
         for (i = 0; i < c_block_count; i++)
         {
-            cr_block[i] = new float *[8];
-            cb_block[i] = new float *[8];
+            cr_block[i] = new double *[8];
+            cb_block[i] = new double *[8];
             for (j = 0; j < 8; j++)
             {
-                cr_block[i][j] = new float[8];
-                cb_block[i][j] = new float[8];
+                cr_block[i][j] = new double[8];
+                cb_block[i][j] = new double[8];
             }
         }
 
@@ -148,13 +146,15 @@ namespace jpeg
                     y_block[n][ii][jj] = ycc.v1;
                 }
                 else
-                    if (i * 8 + ii >= img_height)
+                    y_block[n][ii][jj] = 0;
+                    // this part is unstable
+/*                    if (i * 8 + ii >= img_height)
                         y_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v1;
                     else if (j * 8 + jj >= img_width)
                         y_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v1;
                     else
                         y_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v1;
-            n++;
+ */           n++;
         }
 
         // subsample cr&cb blocks
@@ -178,14 +178,17 @@ namespace jpeg
                                 count++;
                                 sum = sum + origin[img_i + x][img_j + y];
                             }
-                    sum = sum / (float)count;
+                    sum = sum / (double)count;
                     Pixel ycc = rgb2ycc(sum);
                     cb_block[n][ii][jj] = ycc.v2;
                     cr_block[n][ii][jj] = ycc.v3;
                 }
                 else
                 {
-                    if (i * 8 + ii >= img_height)
+                    cb_block[n][ii][jj] = 0;
+                    cr_block[n][ii][jj] = 0;
+                    // this part is unstable
+/*                    if (i * 8 + ii >= img_height)
                         cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v2;
                     else if (j * 8 + jj >= img_width)
                         cb_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v2;
@@ -198,7 +201,7 @@ namespace jpeg
                         cr_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v3;
                     else
                         cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v3;
-                }
+ */               }
             }
             n++;
         }
@@ -228,8 +231,6 @@ namespace jpeg
         for (i = 0; i < y_block_count; i++)
         {
             dct(y_block[i]);
-            if (i == 3)
-                std::cout << "asdf" << y_block[3][0][0] << '\n';
             quantize(y_block[i], lum_quan);
         }
         for (i = 0; i < c_block_count; i++)
@@ -268,6 +269,11 @@ namespace jpeg
             previous = y_zigzag[i][0];
             y_zigzag[i][0] = delta;
         }
+    }
+
+    void JpegEncoder::RLE()
+    {
+
     }
 
     void JpegEncoder::encodeImage(Pixel **matrix, int height, int width)

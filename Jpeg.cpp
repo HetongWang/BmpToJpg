@@ -9,7 +9,7 @@ Pixel::Pixel(unsigned char val[3])
     this->v1 = val[2];
 }
 
-Pixel::Pixel(float r, float g, float b) :
+Pixel::Pixel(double r, double g, double b) :
     v1(r), v2(g), v3(b)
 {
 }
@@ -23,7 +23,7 @@ Pixel Pixel::operator+(Pixel &rgb)
     return res;
 }
 
-Pixel Pixel::operator/(float x)
+Pixel Pixel::operator/(double x)
 {
     Pixel res;
     res.v1 = v1 / x;

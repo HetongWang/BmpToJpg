@@ -16,13 +16,13 @@ namespace jpeg
 
     struct Pixel
     {
-        float v1, v2, v3;
+        double v1, v2, v3;
  
         Pixel() {}
         Pixel(unsigned char val[3]);
-        Pixel(float r, float g, float b);
+        Pixel(double r, double g, double b);
         Pixel operator+(Pixel &rgb);
-        Pixel operator/(float x);
+        Pixel operator/(double x);
     };
 
     Pixel rgb2ycc(Pixel pixel);
