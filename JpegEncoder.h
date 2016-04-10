@@ -11,7 +11,7 @@ namespace jpeg
     void dct(float **block);
     void quantize(float **block, BYTE quan[64]);
 
-    float* zigzag(float **block);
+    int* zigzagTransform(float **block);
 
     class JpegEncoder
     {
@@ -38,12 +38,16 @@ namespace jpeg
         float ***y_block;
         float ***cb_block;
         float ***cr_block;
+        int **y_zigzag;
+        int **cb_zigzag;
+        int **cr_zigzag;
 
     private:
         Pixel **origin;
 
         void subsample();
         void dctAndQuan();
+        void zigzag();
         void deltaEncoding();
     };
 }

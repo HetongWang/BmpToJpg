@@ -23,9 +23,9 @@ namespace jpeg
             return 1.0;
     }
 
-    void dct(float **block)
+    void dct(float **block)  // the overflow occur here
     {
-        double a;
+        float a;
         float F[8][8];
         for (int u = 0; u < 8; u++)
         for (int v = 0; v < 8; v++)
@@ -48,20 +48,22 @@ namespace jpeg
         for (int i = 0; i < 64; i++) {
             x = i / 8;
             y = i % 8;
-            block[x][y] = int(round(block[x][y] / quan[i]));
+            if (isnan(block[x][y]))
+                std::cout << "asdfasdf" << block[x][y] / quan[i]<< '\n';
+            block[x][y] = block[x][y] / quan[i];
             if (block[x][y] > 65535 || block[x][y] < -65536) 
                 block[x][y] > 0 ? block[x][y] = 65535 : block[x][y] = -65536;
         }
     }
 
-    float* zigzag(float **block)
+    int* zigzagTransform(float **block)
     {
-        float *res = new float[64];
+        int* res = new int[64];
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
-                res[zigzag_table[i * 8 + j]] = block[i][j];
+                res[zigzag_table[i * 8 + j]] = int(block[i][j]);
             }
         }
 
@@ -226,6 +228,8 @@ namespace jpeg
         for (i = 0; i < y_block_count; i++)
         {
             dct(y_block[i]);
+            if (i == 3)
+                std::cout << "asdf" << y_block[3][0][0] << '\n';
             quantize(y_block[i], lum_quan);
         }
         for (i = 0; i < c_block_count; i++)
@@ -237,9 +241,33 @@ namespace jpeg
         }
     }
 
-    void deltaEncoding()
+    void JpegEncoder::zigzag()
     {
+        int i;
+        y_zigzag = new int*[y_block_count];
+        for (i = 0; i < y_block_count; i++)
+            y_zigzag[i] = zigzagTransform(y_block[i]);
 
+        cr_zigzag = new int *[c_block_count];
+        cb_zigzag = new int *[c_block_count];
+        for (i = 0; i < c_block_count; i++)
+        {
+            cr_zigzag[i] = zigzagTransform(cr_block[i]);
+            cb_zigzag[i] = zigzagTransform(cb_block[i]);
+        }
+        
+    }
+
+    void JpegEncoder::deltaEncoding()
+    {
+        int previous = y_zigzag[0][0];
+        for (int i = 1; i < y_block_count; i++)
+        {
+            int current = y_zigzag[i][0];
+            int delta = current - previous;
+            previous = y_zigzag[i][0];
+            y_zigzag[i][0] = delta;
+        }
     }
 
     void JpegEncoder::encodeImage(Pixel **matrix, int height, int width)
@@ -247,8 +275,11 @@ namespace jpeg
         origin = matrix;
         img_height = height;
         img_width = width;
+
         subsample();
         dctAndQuan();
+        zigzag();
+        deltaEncoding();
     }
 
     JpegEncoder::JpegEncoder(int quality, string subsampling) :
