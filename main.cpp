@@ -8,18 +8,13 @@ using namespace jpeg;
 
 int main(int argc, char *argv) {
     BmpImage *bmp = new BmpImage();
-    bmp->readBmp("1");
+    bmp->readBmp("1.bmp");
 
-    JpegEncoder *encoder = new jpeg::JpegEncoder(1, "4:4:4");
+    JpegEncoder *encoder = new jpeg::JpegEncoder(2, "4:2:0");
     encoder->encodeImage(bmp->matrix, bmp->height, bmp->width);
 
     JpegDecoder *decoder = new JpegDecoder();
     decoder->decoderImage(encoder);
-
-    Pixel p = Pixel(255, 255, 255);
-    p = rgb2ycc(p);
-    p = ycc2rgb(p);
-    std::cout << p.v1 << " " << p.v2 << " " << p.v3 << " " << std::endl;
 
     int a;
     std::cin >> a;

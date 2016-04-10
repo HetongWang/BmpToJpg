@@ -9,6 +9,9 @@ namespace jpeg
 {
     float C(int u);
     void dct(float **block);
+    void quantize(float **block, BYTE quan[64]);
+
+    float* zigzag(float **block);
 
     class JpegEncoder
     {
@@ -41,6 +44,7 @@ namespace jpeg
 
         void subsample();
         void dctAndQuan();
+        void deltaEncoding();
     };
 }
 

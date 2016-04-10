@@ -7,6 +7,14 @@ using std::string;
 
 namespace jpeg
 {
+    int zigzag_table[64] = {0, 1, 5, 6, 14, 15, 27, 28, 
+                            2, 4, 7, 13, 16, 26, 29, 42, 
+                            3, 8, 12, 17, 25, 30, 41, 43, 
+                            9, 11, 18, 24, 31, 40, 44, 53, 
+                            10, 19, 23, 32, 39, 45, 52, 54,
+                            20, 22, 33, 38, 46, 51, 55, 60, 
+                            21, 34, 37, 47, 50, 56, 59, 61, 
+                            35, 36, 48, 49, 57, 58, 62, 63};
     float C(int u)
     {
         if (u == 0)
@@ -44,6 +52,20 @@ namespace jpeg
             if (block[x][y] > 65535 || block[x][y] < -65536) 
                 block[x][y] > 0 ? block[x][y] = 65535 : block[x][y] = -65536;
         }
+    }
+
+    float* zigzag(float **block)
+    {
+        float *res = new float[64];
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                res[zigzag_table[i * 8 + j]] = block[i][j];
+            }
+        }
+
+        return res;
     }
     
     void  JpegEncoder::subsample()
@@ -124,7 +146,12 @@ namespace jpeg
                     y_block[n][ii][jj] = ycc.v1;
                 }
                 else
-                    y_block[n][ii][jj] = 0;
+                    if (i * 8 + ii >= img_height)
+                        y_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v1;
+                    else if (j * 8 + jj >= img_width)
+                        y_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v1;
+                    else
+                        y_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v1;
             n++;
         }
 
@@ -156,8 +183,19 @@ namespace jpeg
                 }
                 else
                 {
-                    cb_block[n][ii][jj] = 0;
-                    cr_block[n][ii][jj] = 0;
+                    if (i * 8 + ii >= img_height)
+                        cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v2;
+                    else if (j * 8 + jj >= img_width)
+                        cb_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v2;
+                    else
+                        cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v2;
+
+                    if (i * 8 + ii >= img_height)
+                        cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v3;
+                    else if (j * 8 + jj >= img_width)
+                        cr_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v3;
+                    else
+                        cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v3;
                 }
             }
             n++;
@@ -197,6 +235,11 @@ namespace jpeg
             dct(cb_block[i]);
             quantize(cb_block[i], croma_quan);
         }
+    }
+
+    void deltaEncoding()
+    {
+
     }
 
     void JpegEncoder::encodeImage(Pixel **matrix, int height, int width)
