@@ -14,7 +14,7 @@ int main(int argc, char *argv) {
 
     JpegEncoder *encoder = new jpeg::JpegEncoder(2, "4:4:4");
     encoder->encodeImage(bmp->matrix, bmp->height, bmp->width);
-    encoder->writeJpg("res");
+    encoder->writeJpg("res.jpg");
 
     //JpegDecoder *decoder = new JpegDecoder();
     //decoder->decoderImage(encoder);

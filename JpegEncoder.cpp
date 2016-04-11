@@ -469,7 +469,6 @@ namespace jpeg
             if (zero_amount == 0 && value == 0)
             {
                 ac_amount = 63;
-                writeWord(0, 8);
             }
 
             WORD rleCode = (zero_amount & 0xf) << 4 + (length & 0xf);
