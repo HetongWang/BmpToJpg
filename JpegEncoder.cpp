@@ -538,8 +538,8 @@ namespace jpeg
         makeSOF0();
         makeDHT(0x00, dc_lum_bits, dc_lum_val, DC_LUM_CODES);
         makeDHT(0x01, dc_chr_bits, dc_chr_val, DC_LUM_CODES);
-        makeDHT(0x12, ac_lum_bits, ac_lum_val, AC_LUM_CODES);
-        makeDHT(0x13, ac_chr_bits, ac_chr_val, AC_LUM_CODES);
+        makeDHT(0x10, ac_lum_bits, ac_lum_val, AC_LUM_CODES);
+        makeDHT(0x11, ac_chr_bits, ac_chr_val, AC_LUM_CODES);
         makeSOS();
 
         writeImageData();
@@ -566,10 +566,12 @@ namespace jpeg
     {
         DQT dqt;
         dqt.name[0] = 0xff, dqt.name[1] = 0xdb;
-        dqt.length[0] = 0; dqt.length[1] = 65;
+        dqt.length[0] = 0; dqt.length[1] = 67;
         dqt.info = id;
-        for (int i = 0; i < 63; i++)
+        for (int i = 0; i < 64; i++)
+        {
             dqt.table[i] = table[i];
+        }
         out.write((char*)&dqt, sizeof(dqt));
     }
 
@@ -585,11 +587,11 @@ namespace jpeg
         sof0.width[1] = img_width & 0x00ff;
         sof0.colorinfo[0].id = 0x01;
         sof0.colorinfo[0].sampling = 0x11;
-        sof0.colorinfo[0].tableid = 0x02;
+        sof0.colorinfo[0].tableid = 0x00;
         sof0.colorinfo[1].id = 0x02;
-        sof0.colorinfo[1].tableid = 0x13;
+        sof0.colorinfo[1].tableid = 0x01;
         sof0.colorinfo[2].id = 0x03;
-        sof0.colorinfo[2].tableid = 0x13;
+        sof0.colorinfo[2].tableid = 0x01;
         if (chroma_subsampling == "4:4:4")
             sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x11;
         if (chroma_subsampling == "4:2:2")
@@ -622,11 +624,11 @@ namespace jpeg
         int length = (sos.length[0] << 8) + sos.length[1];
         sos.color = 3;
         sos.color_huffinfo[0] = 0x01;
-        sos.color_huffinfo[1] = 0x02;
+        sos.color_huffinfo[1] = 0x00;
         sos.color_huffinfo[2] = 0x02;
-        sos.color_huffinfo[3] = 0x13;
+        sos.color_huffinfo[3] = 0x11;
         sos.color_huffinfo[4] = 0x03;
-        sos.color_huffinfo[5] = 0x13;
+        sos.color_huffinfo[5] = 0x11;
         sos.data[0] = 0x00; sos.data[1] = 0x3f; sos.data[2] = 0x00;
         out.write((char*)&sos, length + 2);
     }
