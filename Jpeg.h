@@ -99,7 +99,6 @@ namespace jpeg
     };
     static BYTE EOI[2] = { 0xff, 0xd9 };
 
-
     struct Pixel
     {
         double v1, v2, v3;
@@ -113,6 +112,11 @@ namespace jpeg
 
     Pixel rgb2ycc(Pixel pixel);
     Pixel ycc2rgb(Pixel pixel);
+
+    struct BitString
+    {
+        int code, length;
+    };
 }
 
 #endif // !__JPEG__

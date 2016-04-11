@@ -50,6 +50,11 @@ namespace jpeg
         std::vector<std::vector<int>> cr_ac;
         std::vector<std::vector<int>> cb_ac;
 
+        BitString dc_lum_table[13];
+        BitString dc_chr_table[13];
+        BitString ac_lum_table[257];
+        BitString ac_chr_table[257];
+
     private:
         Pixel **origin;
         std::ofstream out;
@@ -61,10 +66,17 @@ namespace jpeg
         void RLE(int **zigzag, int block_count, std::vector<std::vector<int>>&ac);
         void RLEAddPair(int zero_count, int n, std::vector<std::vector<int>> &ac);
 
-        void JpegEncoder::makeAPP0();
-        void JpegEncoder::makeDQT(int id, BYTE *table);
-        void JpegEncoder::makeSOF0();
-        void JpegEncoder::makeDHT(BYTE id, BYTE *bits, BYTE *vals, int len);
+        void initHuffmanTable();
+        void computeHuffmanTable(BYTE *bits, BYTE *value, BitString *table);
+
+        void makeAPP0();
+        void makeDQT(int id, BYTE *table);
+        void makeSOF0();
+        void makeDHT(BYTE id, BYTE *bits, BYTE *vals, int len);
+        void makeSOS();
+
+        void writeBlock(int dc, std::vector<std::vector<int>>&ac, int &ac_index);
+        void writeImageData();
     };
 }
 

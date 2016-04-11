@@ -383,6 +383,91 @@ namespace jpeg
         RLE(cb_zigzag, c_block_count, cb_ac);
     }
 
+    void JpegEncoder::computeHuffmanTable(BYTE *bits, BYTE *value, BitString *table)
+    {
+        BYTE n = 0;
+        WORD huffman_code = 0;
+
+        for (int i = 1; i < 16; i++)
+        {
+            for (int j = 0; j < bits[i]; j++)
+            {
+                table[value[n]].code = huffman_code;
+                table[value[n]].length = i;
+                n++;
+                huffman_code++;
+            }
+            huffman_code <<= 1;
+        }
+    }
+
+    void JpegEncoder::initHuffmanTable()
+    {
+        memset(dc_lum_table, 0, sizeof(dc_lum_table));
+        computeHuffmanTable(dc_lum_bits, dc_lum_val, dc_lum_table);
+
+        memset(dc_chr_table, 0, sizeof(dc_chr_table));
+        computeHuffmanTable(dc_chr_bits, dc_chr_val, dc_chr_table);
+        
+        memset(ac_lum_table, 0, sizeof(ac_lum_table));
+        computeHuffmanTable(ac_lum_bits, ac_lum_val, ac_lum_table);
+
+        memset(ac_chr_table, 0, sizeof(ac_chr_table));
+        computeHuffmanTable(dc_chr_bits, dc_chr_val, dc_chr_table);
+    }
+
+    void JpegEncoder::writeBlock(int dc, std::vector<std::vector<int>>&ac, int &ac_index)
+    {
+
+    }
+
+    void JpegEncoder::writeImageData()
+    {
+        initHuffmanTable();
+
+        int y_n = 0, c_n = 0;
+        int y_ac_index = 0,
+            cb_ac_index = 0,
+            cr_ac_index = 0;
+        for (int i = 0; i < mcu_ver_count; i++)
+        for (int j = 0; j < mcu_hor_count; j++)
+        {
+            if (chroma_subsampling == "4:4:4")
+            {
+                c_n = y_n = i * mcu_hor_count + j;
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index);
+                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index);
+            }
+            if (chroma_subsampling == "4:2:2")
+            {
+                y_n = i * (mcu_hor_count * 2) + (j * 2);
+                c_n = i * mcu_hor_count + j;
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                y_n += 1;
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+
+                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index);
+                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index);
+            }
+            if (chroma_subsampling == "4:2:0")
+            {
+                y_n = (i * 2) * (mcu_hor_count * 2) + (j * 2);
+                c_n = i * mcu_hor_count + j;
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                y_n += 1;
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                y_n = y_n + (mcu_hor_count * 2) - 1;
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                y_n += 1;
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+
+                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index);
+                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index);
+            }
+        }
+    }
+
     void JpegEncoder::writeJpg(std::string file)
     {
         out.open(file, std::ios::out | std::ios::binary);
@@ -392,6 +477,15 @@ namespace jpeg
         makeAPP0();
         makeDQT(0, lum_quan);
         makeDQT(1, croma_quan);
+        makeDHT(0x00, dc_lum_bits, dc_lum_val, DC_LUM_CODES);
+        makeDHT(0x01, dc_chr_bits, dc_chr_val, AC_LUM_CODES);
+        makeDHT(0x12, ac_lum_bits, ac_lum_val, DC_LUM_CODES);
+        makeDHT(0x13, ac_chr_bits, ac_chr_val, AC_LUM_CODES);
+        makeSOS();
+
+        writeImageData();
+
+        out.write((char*)EOI, sizeof(EOI));
     }
 
     void JpegEncoder::makeAPP0() 
@@ -458,6 +552,22 @@ namespace jpeg
         this->out.write((char*)vals, len);
     }
 
+    void JpegEncoder::makeSOS()
+    {
+        SOS sos;
+        sos.name[0] = 0xff, sos.name[1] = 0xda;
+        sos.length[0] = 0x00, sos.length[1] = 12;
+        int length = (sos.length[0] << 8) + sos.length[1];
+        sos.color = 3;
+        sos.color_huffinfo[0] = 0x01;
+        sos.color_huffinfo[1] = 0x02;
+        sos.color_huffinfo[2] = 0x02;
+        sos.color_huffinfo[3] = 0x13;
+        sos.color_huffinfo[4] = 0x03;
+        sos.color_huffinfo[5] = 0x13;
+        sos.data[0] = 0x00; sos.data[1] = 0x3f; sos.data[2] = 0x00;
+        out.write((char*)&sos, length + 2);
+    }
 
     JpegEncoder::JpegEncoder(int quality, string subsampling) :
         chroma_subsampling(subsampling),
