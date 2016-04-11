@@ -10,11 +10,11 @@ using std::cout;
 
 int main(int argc, char *argv) {
     BmpImage *bmp = new BmpImage();
-    bmp->readBmp("1.bmp");
+    bmp->readBmp("3.bmp");
 
-    JpegEncoder *encoder = new jpeg::JpegEncoder(2, "4:2:0");
+    JpegEncoder *encoder = new jpeg::JpegEncoder(2, "4:4:4");
     encoder->encodeImage(bmp->matrix, bmp->height, bmp->width);
-    encoder->writeJpg("res.jpg");
+    encoder->writeJpg("res");
 
     //JpegDecoder *decoder = new JpegDecoder();
     //decoder->decoderImage(encoder);

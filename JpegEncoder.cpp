@@ -421,9 +421,9 @@ namespace jpeg
         unsigned short mask[] = {1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
         int code_pos = length - 1;
 
-        while (code_pos > 0)
+        while (code_pos >= 0)
         {
-            if ((code & mask[code_pos]) == 1)
+            if ((code & mask[code_pos]) != 0)
             {
                 newByte = newByte | mask[newBytePos];
             }
@@ -433,9 +433,9 @@ namespace jpeg
             {
                 out.write((char*)&newByte, 1);
                 if (newByte == 0xff)
-                    out.write("\x0\x0", 2);
+                    out.write("\x00", 2);
 
-                newBytePos = 0;
+                newBytePos = 7;
                 newByte = 0;
             }
         }
@@ -545,7 +545,9 @@ namespace jpeg
 
         writeImageData();
 
-        writeWord(EOI, 16);
+        if (newBytePos != 7)
+            out.write((char*)&newByte, 1);
+        out.write((char*)&EOI, 2);
         out.close();
     }
 

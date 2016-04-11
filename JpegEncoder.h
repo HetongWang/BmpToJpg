@@ -59,7 +59,7 @@ namespace jpeg
         Pixel **origin;
         std::ofstream out;
         BYTE newByte = 0;
-        int newBytePos = 0;
+        int newBytePos = 7;
 
         void subsample();
         void dctAndQuan();

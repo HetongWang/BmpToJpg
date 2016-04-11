@@ -97,7 +97,7 @@ namespace jpeg
         BYTE color_huffinfo[6];
         BYTE data[3];
     };
-    static WORD EOI = 0xffd9;
+    static BYTE EOI[2] = { 0xff, 0xd9 };
 
     struct Pixel
     {
