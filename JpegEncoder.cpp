@@ -434,6 +434,9 @@ namespace jpeg
                 out.write((char*)&newByte, 1);
                 if (newByte == 0xff)
                     out.write("\x0\x0", 2);
+
+                newBytePos = 0;
+                newByte = 0;
             }
         }
     }
@@ -452,9 +455,29 @@ namespace jpeg
             ac_huffman = ac_chr_table;
         }
         WORD value = numberEncoding(dc);
-        int length = numberOfSetBits(dc);
+        int length = numberOfSetBits(value);
         BitString code = dc_huffman[length];
+        writeWord(code.code, code.length);
+        writeWord(value, length);
         
+        int ac_amount = 0;
+        while (ac_amount < 63)
+        {
+            int zero_amount = ac[ac_index][0];
+            value = numberEncoding(ac[ac_index][1]);
+            length = numberOfSetBits(value);
+            if (zero_amount == 0 && value == 0)
+            {
+                ac_amount = 63;
+                writeWord(0, 8);
+            }
+
+            WORD rleCode = (zero_amount & 0xf) << 4 + (length & 0xf);
+            BitString code = ac_huffman[rleCode];
+            writeWord(code.code, code.length);
+            writeWord(value, length);
+            ac_index++;
+        }
     }
 
     void JpegEncoder::writeImageData()
@@ -520,8 +543,10 @@ namespace jpeg
         makeDHT(0x13, ac_chr_bits, ac_chr_val, AC_LUM_CODES);
         makeSOS();
 
+        writeImageData();
 
-        out.write((char*)EOI, sizeof(EOI));
+        writeWord(EOI, 16);
+        out.close();
     }
 
     void JpegEncoder::makeAPP0() 
@@ -571,7 +596,7 @@ namespace jpeg
         if (chroma_subsampling == "4:2:0")
             sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x22;
         
-        this->out.write((char*)&sof0, length + 2);
+        out.write((char*)&sof0, length + 2);
     }
 
     void JpegEncoder::makeDHT(BYTE id, BYTE *bits, BYTE *vals, int len)
