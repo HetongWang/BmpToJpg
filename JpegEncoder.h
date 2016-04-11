@@ -58,6 +58,8 @@ namespace jpeg
     private:
         Pixel **origin;
         std::ofstream out;
+        BYTE newByte = 0;
+        int newBytePos = 0;
 
         void subsample();
         void dctAndQuan();
@@ -75,7 +77,8 @@ namespace jpeg
         void makeDHT(BYTE id, BYTE *bits, BYTE *vals, int len);
         void makeSOS();
 
-        void writeBlock(int dc, std::vector<std::vector<int>>&ac, int &ac_index);
+        void writeWord(WORD code, int length);
+        void writeBlock(int dc, std::vector<std::vector<int>>&ac, int &ac_index, bool isY);
         void writeImageData();
     };
 }

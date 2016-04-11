@@ -416,9 +416,45 @@ namespace jpeg
         computeHuffmanTable(dc_chr_bits, dc_chr_val, dc_chr_table);
     }
 
-    void JpegEncoder::writeBlock(int dc, std::vector<std::vector<int>>&ac, int &ac_index)
+    void JpegEncoder::writeWord(WORD code, int length)
     {
+        unsigned short mask[] = {1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
+        int code_pos = length - 1;
 
+        while (code_pos > 0)
+        {
+            if ((code & mask[code_pos]) == 1)
+            {
+                newByte = newByte | mask[newBytePos];
+            }
+            code_pos--;
+            newBytePos--;
+            if (newBytePos < 0)
+            {
+                out.write((char*)&newByte, 1);
+                if (newByte == 0xff)
+                    out.write("\x0\x0", 2);
+            }
+        }
+    }
+
+    void JpegEncoder::writeBlock(int dc, std::vector<std::vector<int>>&ac, int &ac_index, bool isY)
+    {
+        BitString *ac_huffman, *dc_huffman;
+        if (isY)
+        {
+            dc_huffman = dc_lum_table;
+            ac_huffman = ac_lum_table;
+        }
+        else  
+        {
+            dc_huffman = dc_chr_table;
+            ac_huffman = ac_chr_table;
+        }
+        WORD value = numberEncoding(dc);
+        int length = numberOfSetBits(dc);
+        BitString code = dc_huffman[length];
+        
     }
 
     void JpegEncoder::writeImageData()
@@ -435,35 +471,35 @@ namespace jpeg
             if (chroma_subsampling == "4:4:4")
             {
                 c_n = y_n = i * mcu_hor_count + j;
-                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
-                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index);
-                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index);
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index, true);
+                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index, false);
+                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index, false);
             }
             if (chroma_subsampling == "4:2:2")
             {
                 y_n = i * (mcu_hor_count * 2) + (j * 2);
                 c_n = i * mcu_hor_count + j;
-                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index, true);
                 y_n += 1;
-                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index, true);
 
-                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index);
-                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index);
+                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index, false);
+                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index, false);
             }
             if (chroma_subsampling == "4:2:0")
             {
                 y_n = (i * 2) * (mcu_hor_count * 2) + (j * 2);
                 c_n = i * mcu_hor_count + j;
-                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index, true);
                 y_n += 1;
-                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index, true);
                 y_n = y_n + (mcu_hor_count * 2) - 1;
-                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index, true);
                 y_n += 1;
-                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index);
+                writeBlock(y_zigzag[y_n][0], y_ac, y_ac_index, true);
 
-                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index);
-                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index);
+                writeBlock(cb_zigzag[c_n][0], cb_ac, cb_ac_index, false);
+                writeBlock(cr_zigzag[c_n][0], cr_ac, cr_ac_index, false);
             }
         }
     }
@@ -478,12 +514,11 @@ namespace jpeg
         makeDQT(0, lum_quan);
         makeDQT(1, croma_quan);
         makeDHT(0x00, dc_lum_bits, dc_lum_val, DC_LUM_CODES);
-        makeDHT(0x01, dc_chr_bits, dc_chr_val, AC_LUM_CODES);
-        makeDHT(0x12, ac_lum_bits, ac_lum_val, DC_LUM_CODES);
+        makeDHT(0x01, dc_chr_bits, dc_chr_val, DC_LUM_CODES);
+        makeDHT(0x12, ac_lum_bits, ac_lum_val, AC_LUM_CODES);
         makeDHT(0x13, ac_chr_bits, ac_chr_val, AC_LUM_CODES);
         makeSOS();
 
-        writeImageData();
 
         out.write((char*)EOI, sizeof(EOI));
     }
@@ -523,11 +558,11 @@ namespace jpeg
         sof0.width[1] = img_width & 0x00ff;
         sof0.colorinfo[0].id = 0x01;
         sof0.colorinfo[0].sampling = 0x11;
-        sof0.colorinfo[0].tableid = 0x00;
+        sof0.colorinfo[0].tableid = 0x02;
         sof0.colorinfo[1].id = 0x02;
-        sof0.colorinfo[1].tableid = 0x01;
+        sof0.colorinfo[1].tableid = 0x13;
         sof0.colorinfo[2].id = 0x03;
-        sof0.colorinfo[2].tableid = 0x01;
+        sof0.colorinfo[2].tableid = 0x13;
         if (chroma_subsampling == "4:4:4")
             sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x11;
         if (chroma_subsampling == "4:2:2")
@@ -547,8 +582,8 @@ namespace jpeg
         l[0] = (length & 0xff00) >> 8;
         l[1] = length & 0x00ff;
         this->out.write((char*)l, 2);
-        this->out.write((char*)id, 1);
-        this->out.write((char*)bits[1], 16);
+        this->out.write((char*)&id, 1);
+        this->out.write((char*)&bits[1], 16);
         this->out.write((char*)vals, len);
     }
 

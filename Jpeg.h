@@ -115,7 +115,7 @@ namespace jpeg
 
     struct BitString
     {
-        int code, length;
+        WORD code, length;
     };
 }
 
