@@ -30,8 +30,8 @@ namespace jpeg
         0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
         0xf9, 0xfa
     };
-    static BYTE Standard_AC_Chrominance_NRCodes[] = { 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77 };
-    static BYTE Standard_AC_Chrominance_Values[] =
+    static BYTE ac_chr_bits[17] = { 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77 };
+    static BYTE ac_chr_val[AC_LUM_CODES] =
     {
         0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21, 0x31, 0x06, 0x12, 0x41, 0x51, 0x07, 0x61, 0x71,
         0x13, 0x22, 0x32, 0x81, 0x08, 0x14, 0x42, 0x91, 0xa1, 0xb1, 0xc1, 0x09, 0x23, 0x33, 0x52, 0xf0,
@@ -45,6 +45,60 @@ namespace jpeg
         0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
         0xf9, 0xfa
     };
+
+    // Jpeg markers defination
+    static BYTE SOI[2] = { 0xff, 0xd8 };
+    struct APP0 {
+        BYTE name[2];
+        BYTE length[2];
+        BYTE symbol[5];
+        BYTE version[2];
+        BYTE density = 0x02;
+        BYTE density_x[2];
+        BYTE density_y[2];
+        BYTE thum_x = 0;
+        BYTE thum_y = 0;
+    };
+
+    struct DQT {
+        BYTE name[2];
+        BYTE length[2];
+        BYTE info;
+        BYTE table[64];
+    };
+
+    struct colorInfo {
+        BYTE id;
+        BYTE sampling = 0x11;
+        BYTE tableid;
+    };
+
+    struct SOF0 {
+        BYTE name[2];
+        BYTE length[2];
+        BYTE accuracy = 8;
+        BYTE height[2];
+        BYTE width[2];
+        BYTE color = 3;
+        colorInfo colorinfo[3];
+    };
+
+    struct DHT {
+        BYTE name[2];
+        BYTE length[2];
+        BYTE id;
+        BYTE count[16];
+    };
+
+    struct SOS {
+        BYTE name[2];
+        BYTE length[2];
+        BYTE color = 3;
+        BYTE color_huffinfo[6];
+        BYTE data[3];
+    };
+    static BYTE EOI[2] = { 0xff, 0xd9 };
+
 
     struct Pixel
     {

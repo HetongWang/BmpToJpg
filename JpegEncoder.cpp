@@ -1,6 +1,7 @@
 #include "JpegEncoder.h"
 #include <string.h>
 #include <iostream>
+#include <fstream>
 
 using std::cout;
 using std::vector;
@@ -239,7 +240,6 @@ namespace jpeg
     void JpegEncoder::dctAndQuan()
     {
         int i;
-        BYTE *lum_quan, *croma_quan;
         switch (quality)
         {
         case 0:
@@ -382,6 +382,82 @@ namespace jpeg
         RLE(cr_zigzag, c_block_count, cr_ac);
         RLE(cb_zigzag, c_block_count, cb_ac);
     }
+
+    void JpegEncoder::writeJpg(std::string file)
+    {
+        out.open(file, std::ios::out | std::ios::binary);
+
+        //SOI
+        out.write((char*)SOI, sizeof(SOI));
+        makeAPP0();
+        makeDQT(0, lum_quan);
+        makeDQT(1, croma_quan);
+    }
+
+    void JpegEncoder::makeAPP0() 
+    {
+        APP0 app0;
+        app0.name[0] = 0xff; app0.name[1] = 0xe0;
+        app0.length[0] = 0x00, app0.length[1] = 16;
+        app0.symbol[0] = 0x4A, app0.symbol[1] = 0x46, app0.symbol[2] = 0x49, app0.symbol[3] = 0x46, app0.symbol[4] = 0x00;
+        app0.version[0] = 0x01, app0.version[1] = 0x02;
+        app0.density_x[0] = 0x00, app0.density_x[1] = 0x60;
+        app0.density_y[0] = 0x00, app0.density_y[1] = 0x60;
+        out.write((char*)&app0, sizeof(app0));
+    }
+
+    void JpegEncoder::makeDQT(int id, BYTE *table)
+    {
+        DQT dqt;
+        dqt.name[0] = 0xff, dqt.name[1] = 0xdb;
+        dqt.length[0] = 0; dqt.length[1] = 65;
+        dqt.info = id;
+        for (int i = 0; i < 63; i++)
+            dqt.table[i] = table[i];
+        out.write((char*)&dqt, sizeof(dqt));
+    }
+
+    void JpegEncoder::makeSOF0() 
+    {
+        SOF0 sof0;
+        sof0.name[0] = 0xff; sof0.name[1] = 0xc0;
+        sof0.length[0] = 0x00; sof0.length[1] = 0x11;
+        int length = (sof0.length[0] << 8) + sof0.length[1];
+        sof0.height[0] = (img_height & 0xff00) >> 8;
+        sof0.height[1] = img_height & 0x00ff;
+        sof0.width[0] = (img_width & 0xff00) >> 8;
+        sof0.width[1] = img_width & 0x00ff;
+        sof0.colorinfo[0].id = 0x01;
+        sof0.colorinfo[0].sampling = 0x11;
+        sof0.colorinfo[0].tableid = 0x00;
+        sof0.colorinfo[1].id = 0x02;
+        sof0.colorinfo[1].tableid = 0x01;
+        sof0.colorinfo[2].id = 0x03;
+        sof0.colorinfo[2].tableid = 0x01;
+        if (chroma_subsampling == "4:4:4")
+            sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x11;
+        if (chroma_subsampling == "4:2:2")
+            sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x21;
+        if (chroma_subsampling == "4:2:0")
+            sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x22;
+        
+        this->out.write((char*)&sof0, length + 2);
+    }
+
+    void JpegEncoder::makeDHT(BYTE id, BYTE *bits, BYTE *vals, int len)
+    {
+        BYTE l[2];
+        WORD length;
+        this->out.write("\xff\xc4", 2);
+        length = 2 + 1 + 16 + len;
+        l[0] = (length & 0xff00) >> 8;
+        l[1] = length & 0x00ff;
+        this->out.write((char*)l, 2);
+        this->out.write((char*)id, 1);
+        this->out.write((char*)bits[1], 16);
+        this->out.write((char*)vals, len);
+    }
+
 
     JpegEncoder::JpegEncoder(int quality, string subsampling) :
         chroma_subsampling(subsampling),

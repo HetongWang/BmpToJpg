@@ -22,6 +22,7 @@ namespace jpeg
         JpegEncoder();
         JpegEncoder(int quality, std::string subsampling);
         ~JpegEncoder() {};
+        void writeJpg(std::string file);
 
         void encodeImage(Pixel **matrix, int height, int width);
         int quality;
@@ -38,6 +39,7 @@ namespace jpeg
         int c_ver_count;
         int c_block_count;
 
+        BYTE *lum_quan, *croma_quan;
         double ***y_block;
         double ***cb_block;
         double ***cr_block;
@@ -50,6 +52,7 @@ namespace jpeg
 
     private:
         Pixel **origin;
+        std::ofstream out;
 
         void subsample();
         void dctAndQuan();
@@ -57,6 +60,11 @@ namespace jpeg
         void deltaEncoding();
         void RLE(int **zigzag, int block_count, std::vector<std::vector<int>>&ac);
         void RLEAddPair(int zero_count, int n, std::vector<std::vector<int>> &ac);
+
+        void JpegEncoder::makeAPP0();
+        void JpegEncoder::makeDQT(int id, BYTE *table);
+        void JpegEncoder::makeSOF0();
+        void JpegEncoder::makeDHT(BYTE id, BYTE *bits, BYTE *vals, int len);
     };
 }
 
