@@ -18,16 +18,16 @@ int main(int argc, char *argv) {
     JpegDecoder *decoder = new JpegDecoder();
     decoder->decoderImage(encoder);
 
-    //int* res = zigzagTransform(encoder->y_block[3]);
-    //for (int i = 0; i < 64; i++)
-    //    std::cout << res[i] << ' ';
-    //std::cout << '\n';
-    //std::cout << encoder->y_zigzag[3][0] << ' ';
+    int* res = zigzagTransform(encoder->y_block[3]);
+    for (int i = 0; i < 64; i++)
+        std::cout << res[i] << ' ';
+    std::cout << '\n';
+    std::cout << encoder->y_zigzag[3][0] << ' ';
     //for (int i = 0; i < encoder->y_ac.size(); i++)
         //std::cout << encoder->y_ac[i][0] << ' ' << encoder->y_ac[i][1] << ' ' << '\n';
 
-    std::bitset<16> x(numberEncoding(-63));
-    cout << x;
+    //std::bitset<16> x(numberEncoding(-63));
+    //cout << x;
 
     int a;
     std::cin >> a;

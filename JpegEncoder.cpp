@@ -46,7 +46,8 @@ namespace jpeg
     void quantize(double **block, BYTE quan[64]) 
     {
         int x, y;
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < 64; i++)
+        {
             x = i / 8;
             y = i % 8;
             block[x][y] = block[x][y] / quan[i];
@@ -366,8 +367,6 @@ namespace jpeg
             }
         }
     }
-
-    
 
     void JpegEncoder::encodeImage(Pixel **matrix, int height, int width)
     {
