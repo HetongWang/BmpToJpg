@@ -513,6 +513,7 @@ namespace jpeg
         makeAPP0();
         makeDQT(0, lum_quan);
         makeDQT(1, croma_quan);
+        makeSOF0();
         makeDHT(0x00, dc_lum_bits, dc_lum_val, DC_LUM_CODES);
         makeDHT(0x01, dc_chr_bits, dc_chr_val, DC_LUM_CODES);
         makeDHT(0x12, ac_lum_bits, ac_lum_val, AC_LUM_CODES);
