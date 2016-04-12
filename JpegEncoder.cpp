@@ -52,8 +52,8 @@ namespace jpeg
             x = i / 8;
             y = i % 8;
             block[x][y] = block[x][y] / quan[i];
-            if (block[x][y] > 32767 || block[x][y] < -32767) 
-                block[x][y] > 0 ? block[x][y] = 32767 : block[x][y] = -32767;
+            if (block[x][y] > 2048 || block[x][y] < -2048) 
+                block[x][y] > 0 ? block[x][y] = 2048 : block[x][y] = -2048;
         }
     }
 
@@ -325,8 +325,8 @@ namespace jpeg
     {
         vector<int> pair;
         pair.push_back(zero_count);
-        n = n > 32767 ? 32767 : n;
-        n = n < -32767 ? -32767 : n;
+        n = n > 128 ? 128 : n;
+        n = n < -128 ? -128 : n;
         pair.push_back(n);
         ac.push_back(pair);
     }
@@ -418,7 +418,7 @@ namespace jpeg
 
     void JpegEncoder::writeWord(WORD code, int length)
     {
-        unsigned short mask[] = {1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768};
+        unsigned short mask[] = { 1,2,4,8,16,32,64,128,256,512,1024,2048,4096,8192,16384,32768 };
         int code_pos = length - 1;
 
         while (code_pos >= 0)
@@ -471,7 +471,7 @@ namespace jpeg
                 ac_amount = 63;
             }
 
-            WORD rleCode = (zero_amount & 0xf) << 4 + (length & 0xf);
+            WORD rleCode = (zero_amount | 0xf) << 4 + (length | 0xf);
             BitString code = ac_huffman[rleCode];
             writeWord(code.code, code.length);
             writeWord(value, length);
@@ -537,8 +537,8 @@ namespace jpeg
         makeDQT(1, croma_quan);
         makeSOF0();
         makeDHT(0x00, dc_lum_bits, dc_lum_val, DC_LUM_CODES);
-        makeDHT(0x01, dc_chr_bits, dc_chr_val, DC_LUM_CODES);
         makeDHT(0x10, ac_lum_bits, ac_lum_val, AC_LUM_CODES);
+        makeDHT(0x01, dc_chr_bits, dc_chr_val, DC_LUM_CODES);
         makeDHT(0x11, ac_chr_bits, ac_chr_val, AC_LUM_CODES);
         makeSOS();
 
@@ -557,8 +557,8 @@ namespace jpeg
         app0.length[0] = 0x00, app0.length[1] = 16;
         app0.symbol[0] = 0x4A, app0.symbol[1] = 0x46, app0.symbol[2] = 0x49, app0.symbol[3] = 0x46, app0.symbol[4] = 0x00;
         app0.version[0] = 0x01, app0.version[1] = 0x02;
-        app0.density_x[0] = 0x00, app0.density_x[1] = 0x60;
-        app0.density_y[0] = 0x00, app0.density_y[1] = 0x60;
+        app0.density_x[0] = 0x00, app0.density_x[1] = 0x48;
+        app0.density_y[0] = 0x00, app0.density_y[1] = 0x48;
         out.write((char*)&app0, sizeof(app0));
     }
 
