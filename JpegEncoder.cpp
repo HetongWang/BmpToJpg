@@ -483,6 +483,11 @@ namespace jpeg
     {
         initHuffmanTable();
 
+        for (int k = 0; k < c_block_count; k++)
+            for (int i = 0; i < 64; i++)
+                std::cout << cb_zigzag[k][i] << ' ';
+        //for (int i = 0; i < cb_ac.size(); i++)
+        //    std::cout << cb_ac[i][0] << ' ' << cb_ac[i][1] << ' ' << '\n';
         int y_n = 0, c_n = 0;
         int y_ac_index = 0,
             cb_ac_index = 0,
@@ -592,12 +597,13 @@ namespace jpeg
         sof0.colorinfo[1].tableid = 0x01;
         sof0.colorinfo[2].id = 0x03;
         sof0.colorinfo[2].tableid = 0x01;
+        sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x11;
         if (chroma_subsampling == "4:4:4")
-            sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x11;
+            sof0.colorinfo[0].sampling = 0x11;
         if (chroma_subsampling == "4:2:2")
-            sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x21;
+            sof0.colorinfo[0].sampling = 0x21;
         if (chroma_subsampling == "4:2:0")
-            sof0.colorinfo[1].sampling = sof0.colorinfo[2].sampling = 0x22;
+            sof0.colorinfo[0].sampling = 0x22;
         
         out.write((char*)&sof0, length + 2);
     }
