@@ -176,15 +176,17 @@ namespace jpeg
                     y_block[n][ii][jj] = ycc.v1;
                 }
                 else
+                {
                     y_block[n][ii][jj] = 0;
                     // this part is unstable
-/*                    if (i * 8 + ii >= img_height)
+                    if (i * 8 + ii >= img_height && j * 8 + jj >= img_width)
+                        y_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v1;
+                    else if (i * 8 + ii >= img_height)
                         y_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v1;
                     else if (j * 8 + jj >= img_width)
                         y_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v1;
-                    else
-                        y_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v1;
- */           n++;
+                }
+            n++;
         }
 
         // subsample cr&cb blocks
@@ -218,20 +220,20 @@ namespace jpeg
                     cb_block[n][ii][jj] = 0;
                     cr_block[n][ii][jj] = 0;
                     // this part is unstable
-/*                    if (i * 8 + ii >= img_height)
-                        cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v2;
-                    else if (j * 8 + jj >= img_width)
-                        cb_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v2;
-                    else
+                    if (img_i >= img_height && img_j >= img_width)
                         cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v2;
+                    else if (img_i >= img_height)
+                        cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_j]).v2;
+                    else if (img_j >= img_width)
+                        cb_block[n][ii][jj] = rgb2ycc(origin[img_i][img_width - 1]).v2;
 
-                    if (i * 8 + ii >= img_height)
-                        cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v3;
-                    else if (j * 8 + jj >= img_width)
-                        cr_block[n][ii][jj] = rgb2ycc(origin[i * 8 + ii][img_width - 1]).v3;
-                    else
+                    if (img_i >= img_height && img_j >= img_width)
                         cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v3;
- */               }
+                    else if (img_i >= img_height)
+                        cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_j]).v3;
+                    else if (img_j >= img_width)
+                        cr_block[n][ii][jj] = rgb2ycc(origin[img_i][img_width - 1]).v3;
+                }
             }
             n++;
         }
@@ -375,6 +377,10 @@ namespace jpeg
         img_width = width;
 
         subsample();
+        for (int k = 0; k < c_block_count; k++)
+            for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 8; j++)
+                std::cout << cr_block[k][i][j] << ' ';
         dctAndQuan();
         zigzag();
         deltaEncoding();
@@ -483,9 +489,6 @@ namespace jpeg
     {
         initHuffmanTable();
 
-        for (int k = 0; k < c_block_count; k++)
-            for (int i = 0; i < 64; i++)
-                std::cout << cb_zigzag[k][i] << ' ';
         //for (int i = 0; i < cb_ac.size(); i++)
         //    std::cout << cb_ac[i][0] << ' ' << cb_ac[i][1] << ' ' << '\n';
         int y_n = 0, c_n = 0;
