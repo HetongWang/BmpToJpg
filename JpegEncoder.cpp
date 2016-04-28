@@ -456,11 +456,21 @@ namespace jpeg
             dc_huffman = dc_chr_table;
             ac_huffman = ac_chr_table;
         }
+
         WORD value = numberEncoding(dc);
-        int length = numberOfSetBits(value);
-        BitString code = dc_huffman[length];
-        writeWord(code.code, code.length);
-        writeWord(value, length);
+        int length;
+        if (value == 0)
+        {
+            BitString code = dc_huffman[0];
+            writeWord(code.code, code.length);
+        }
+        else
+        {
+            length = numberOfSetBits(value);
+            BitString code = dc_huffman[length];
+            writeWord(code.code, code.length);
+            writeWord(value, length);
+        }
         
         int ac_amount = 0;
         while (ac_amount < 63)
