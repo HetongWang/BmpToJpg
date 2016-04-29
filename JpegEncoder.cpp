@@ -247,6 +247,7 @@ namespace jpeg
         case 0:
             lum_quan = lum_quant0;
             croma_quan = croma_quant0;
+            break;
         case 1:
             lum_quan = lum_quant1;
             croma_quan = croma_quant1;
@@ -383,6 +384,8 @@ namespace jpeg
         RLE(y_zigzag, y_block_count, y_ac);
         RLE(cr_zigzag, c_block_count, cr_ac);
         RLE(cb_zigzag, c_block_count, cb_ac);
+        for (int i = 0; i < 64; i++)
+                cout << cb_zigzag[0][i] << ' ';
     }
 
     void JpegEncoder::computeHuffmanTable(BYTE *bits, BYTE *value, BitString *table)
@@ -484,9 +487,17 @@ namespace jpeg
             }
 
             WORD rleCode = (zero_amount | 0xf) << 4 + (length | 0xf);
-            BitString code = ac_huffman[rleCode];
-            writeWord(code.code, code.length);
-            writeWord(value, length);
+            if (rleCode == 0)
+            {
+                BitString code = ac_huffman[rleCode];
+                writeWord(code.code, code.length);
+            }
+            else
+            {
+                BitString code = ac_huffman[rleCode];
+                writeWord(code.code, code.length);
+                writeWord(value, length);
+            }
             ac_index++;
         }
     }
