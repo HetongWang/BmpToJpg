@@ -394,10 +394,10 @@ namespace jpeg
 
         subsample();
         dctAndQuan();
-/*        for (int i = 0; i < 8; i++)
-        for (int j = 0; j < 8; j++)
-               cout << y_block[0][i][j] << ' ';
- */        zigzagAndQuan();
+        //for (int i = 0; i < 8; i++)
+        //for (int j = 0; j < 8; j++)
+        //       cout << y_block[0][i][j] << ' ';
+        zigzagAndQuan();
         deltaEncoding();
         RLE(y_zigzag, y_block_count, y_ac);
         RLE(cr_zigzag, c_block_count, cr_ac);
@@ -480,15 +480,14 @@ namespace jpeg
         }
 
         WORD value = numberEncoding(dc);
-        int length;
-        if (value == 0)
+        int length = numberOfSetBits(abs(dc));
+        if (value == 0 && length == 1)
         {
             BitString code = dc_huffman[0];
             writeWord(code.code, code.length);
         }
         else
         {
-            length = numberOfSetBits(value);
             BitString code = dc_huffman[length];
             writeWord(code.code, code.length);
             writeWord(value, length);
@@ -499,10 +498,11 @@ namespace jpeg
         {
             int zero_amount = ac[ac_index][0];
             value = numberEncoding(ac[ac_index][1]);
-            length = numberOfSetBits(value);
-            if (zero_amount == 0 && value == 0)
+            length = numberOfSetBits(abs(ac[ac_index][1]));
+            if (zero_amount == 0 && value == 0 && length == 1)
             {
                 ac_amount = 63;
+                length = 0;
             }
 
             WORD rleCode = (zero_amount | 0xf) << 4 + (length | 0xf);
