@@ -10,9 +10,10 @@ namespace jpeg
 {
     double C(int u);
     void dct(double **block);
-    void quantize(double **block, BYTE quan[64]);
+    void quantize(int *block, BYTE quan[64]);
 
     int* zigzagTransform(double **block);
+    int* zigzagTransform(BYTE *block);
     int numberOfSetBits(int i);
     unsigned short numberEncoding(int n);
 
@@ -63,7 +64,7 @@ namespace jpeg
 
         void subsample();
         void dctAndQuan();
-        void zigzag();
+        void zigzagAndQuan();
         void deltaEncoding();
         void RLE(int **zigzag, int block_count, std::vector<std::vector<int>>&ac);
         void RLEAddPair(int zero_count, int n, std::vector<std::vector<int>> &ac);

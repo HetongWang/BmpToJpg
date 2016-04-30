@@ -44,16 +44,14 @@ namespace jpeg
             block[u][v] = F[u][v];
     }
 
-    void quantize(double **block, BYTE quan[64]) 
+    void quantize(int *block, BYTE quan[64]) 
     {
         int x, y;
         for (int i = 0; i < 64; i++)
         {
-            x = i / 8;
-            y = i % 8;
-            block[x][y] = block[x][y] / quan[i];
-            if (block[x][y] > 2048 || block[x][y] < -2048) 
-                block[x][y] > 0 ? block[x][y] = 2048 : block[x][y] = -2048;
+            block[i] = block[i] / quan[i];
+            if (block[i] > 2048 || block[i] < -2048) 
+                block[i] > 0 ? block[i] = 2048 : block[i] = -2048;
         }
     }
 
@@ -66,6 +64,17 @@ namespace jpeg
             {
                 res[zigzag_table[i * 8 + j]] = int(block[i][j]);
             }
+        }
+
+        return res;
+    }
+
+    int* zigzagTransform(BYTE *block)
+    {
+        int* res = new int[64];
+        for (int i = 0; i < 64; i++)
+        {
+            res[zigzag_table[i]] = int(block[i]);
         }
 
         return res;
@@ -256,6 +265,10 @@ namespace jpeg
             lum_quan = lum_quant2;
             croma_quan = croma_quant2;
             break;
+        case 5:
+            lum_quan = lum_quant5;
+            croma_quan = croma_quant5;
+            break;
         default:
             return;
         }
@@ -263,30 +276,32 @@ namespace jpeg
         for (i = 0; i < y_block_count; i++)
         {
             dct(y_block[i]);
-            quantize(y_block[i], lum_quan);
         }
         for (i = 0; i < c_block_count; i++)
         {
             dct(cr_block[i]);
-            quantize(cr_block[i], croma_quan);
             dct(cb_block[i]);
-            quantize(cb_block[i], croma_quan);
         }
     }
 
-    void JpegEncoder::zigzag()
+    void JpegEncoder::zigzagAndQuan()
     {
         int i;
         y_zigzag = new int*[y_block_count];
         for (i = 0; i < y_block_count; i++)
+        {
             y_zigzag[i] = zigzagTransform(y_block[i]);
+            quantize(y_zigzag[i], lum_quan);
+        }
 
         cr_zigzag = new int *[c_block_count];
         cb_zigzag = new int *[c_block_count];
         for (i = 0; i < c_block_count; i++)
         {
             cr_zigzag[i] = zigzagTransform(cr_block[i]);
+            quantize(cr_zigzag[i], croma_quan);
             cb_zigzag[i] = zigzagTransform(cb_block[i]);
+            quantize(cb_zigzag[i], croma_quan);
         }
         
     }
@@ -378,14 +393,20 @@ namespace jpeg
         img_width = width;
 
         subsample();
+        for (int i = 0; i < 8; i++)
+        for (int j = 0; j < 8; j++)
+                cout << cr_block[0][i][j] << ' ';
         dctAndQuan();
-        zigzag();
+        zigzagAndQuan();
         deltaEncoding();
         RLE(y_zigzag, y_block_count, y_ac);
         RLE(cr_zigzag, c_block_count, cr_ac);
         RLE(cb_zigzag, c_block_count, cb_ac);
-        for (int i = 0; i < 64; i++)
+/*        for (int i = 0; i < 64; i++)
                 cout << cb_zigzag[0][i] << ' ';
+ */     
+        cout << '\n';
+        cout << '\n';
     }
 
     void JpegEncoder::computeHuffmanTable(BYTE *bits, BYTE *value, BitString *table)
@@ -418,7 +439,7 @@ namespace jpeg
         computeHuffmanTable(ac_lum_bits, ac_lum_val, ac_lum_table);
 
         memset(ac_chr_table, 0, sizeof(ac_chr_table));
-        computeHuffmanTable(dc_chr_bits, dc_chr_val, dc_chr_table);
+        computeHuffmanTable(ac_chr_bits, ac_chr_val, ac_chr_table);
     }
 
     void JpegEncoder::writeWord(WORD code, int length)
