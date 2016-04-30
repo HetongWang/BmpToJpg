@@ -229,18 +229,18 @@ namespace jpeg
                     cb_block[n][ii][jj] = 0;
                     cr_block[n][ii][jj] = 0;
                     // this part is unstable
-                    if (img_i >= img_height && j * 8 + jj >= img_width)
+                    if (img_i >= img_height && img_j >= img_width)
                         cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v2;
                     else if (img_i >= img_height)
-                        cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v2;
-                    else if (j * 8 + jj >= img_width)
+                        cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_j]).v2;
+                    else if (img_j >= img_width)
                         cb_block[n][ii][jj] = rgb2ycc(origin[img_i][img_width - 1]).v2;
 
-                    if (img_i >= img_height && j * 8 + jj >= img_width)
+                    if (img_i >= img_height && img_j >= img_width)
                         cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v3;
                     else if (img_i >= img_height)
-                        cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][j * 8 + jj]).v3;
-                    else if (j * 8 + jj >= img_width)
+                        cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_j]).v3;
+                    else if (img_j >= img_width)
                         cr_block[n][ii][jj] = rgb2ycc(origin[img_i][img_width - 1]).v3;
                 }
             }
