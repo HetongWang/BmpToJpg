@@ -12,7 +12,7 @@ int main(int argc, char *argv) {
     BmpImage *bmp = new BmpImage();
     bmp->readBmp("3.bmp");
 
-    JpegEncoder *encoder = new jpeg::JpegEncoder(5, "4:2:0");
+    JpegEncoder *encoder = new jpeg::JpegEncoder(5, "4:4:4");
     encoder->encodeImage(bmp->matrix, bmp->height, bmp->width);
 
     std::cout << encoder->cb_zigzag[0][0] << '\n';
@@ -26,7 +26,6 @@ int main(int argc, char *argv) {
 
     //JpegDecoder *decoder = new JpegDecoder();
     //decoder->decoderImage(encoder);
-
 
     //std::bitset<16> x(numberEncoding(-63));
     //cout << x;

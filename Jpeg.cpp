@@ -47,11 +47,26 @@ Pixel jpeg::ycc2rgb(Pixel pixel)
     return res;
 }
 
-Pixel jpeg::rgb2ycc(Pixel pixel) 
+//Pixel jpeg::rgb2ycc(Pixel pixel) 
+//{
+//    pixel.v1 -= 128;
+//    pixel.v2 -= 128;
+//    pixel.v3 -= 128;
+//    Pixel res;
+//    res.v1 = 0   + (0.299     * pixel.v1) + (0.587     * pixel.v2) + (0.114     * pixel.v3);
+//    res.v2 = 128 - (0.168736  * pixel.v1) - (0.331264  * pixel.v2) + (0.5       * pixel.v3);
+//    res.v3 = 128 + (0.5       * pixel.v1) - (0.418688  * pixel.v2) - (0.081312  * pixel.v3);
+//    return res;
+//}
+
+Pixel jpeg::rgb2ycc(Pixel pixel)
 {
+    pixel.v1 -= 128;
+    pixel.v2 -= 128;
+    pixel.v3 -= 128;
     Pixel res;
-    res.v1 = 0   + (0.299     * pixel.v1) + (0.587     * pixel.v2) + (0.114     * pixel.v3);
-    res.v2 = 128 - (0.168736  * pixel.v1) - (0.331264  * pixel.v2) + (0.5       * pixel.v3);
-    res.v3 = 128 + (0.5       * pixel.v1) - (0.418688  * pixel.v2) - (0.081312  * pixel.v3);
+    res.v1 = (0.299     * pixel.v1) + (0.587     * pixel.v2) + (0.114     * pixel.v3);
+    res.v2 = (pixel.v3 - res.v1) / (2 - 2 * 0.114);
+    res.v3 = (pixel.v1 - res.v1) / (2 - 2 * 0.299);
     return res;
 }

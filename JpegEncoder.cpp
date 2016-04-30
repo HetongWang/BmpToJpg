@@ -228,7 +228,7 @@ namespace jpeg
                 {
                     cb_block[n][ii][jj] = 0;
                     cr_block[n][ii][jj] = 0;
-                    // this part is unstable
+
                     if (img_i >= img_height && img_j >= img_width)
                         cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v2;
                     else if (img_i >= img_height)
@@ -393,19 +393,17 @@ namespace jpeg
         img_width = width;
 
         subsample();
-        for (int i = 0; i < 8; i++)
-        for (int j = 0; j < 8; j++)
-                cout << cr_block[0][i][j] << ' ';
         dctAndQuan();
-        zigzagAndQuan();
+/*        for (int i = 0; i < 8; i++)
+        for (int j = 0; j < 8; j++)
+               cout << y_block[0][i][j] << ' ';
+ */        zigzagAndQuan();
         deltaEncoding();
         RLE(y_zigzag, y_block_count, y_ac);
         RLE(cr_zigzag, c_block_count, cr_ac);
         RLE(cb_zigzag, c_block_count, cb_ac);
-/*        for (int i = 0; i < 64; i++)
-                cout << cb_zigzag[0][i] << ' ';
- */     
-        cout << '\n';
+        for (int i = 0; i < 64; i++)
+            cout << y_zigzag[0][i] << ' ';
         cout << '\n';
     }
 
