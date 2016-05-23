@@ -10,7 +10,7 @@ using std::cout;
 
 int main(int argc, char *argv) {
     BmpImage *bmp = new BmpImage();
-    bmp->readBmp("1.bmp");
+    bmp->readBmp("3.bmp");
 
     JpegEncoder *encoder = new jpeg::JpegEncoder(5, "4:2:0");
     encoder->encodeImage(bmp->matrix, bmp->height, bmp->width);

@@ -62,7 +62,7 @@ namespace jpeg
         {
             for (int j = 0; j < 8; j++)
             {
-                res[zigzag_table[i * 8 + j]] = int(block[i][j]);
+                res[zigzag_table[i * 8 + j]] = round(block[i][j]);
             }
         }
 
@@ -74,7 +74,7 @@ namespace jpeg
         int* res = new int[64];
         for (int i = 0; i < 64; i++)
         {
-            res[zigzag_table[i]] = int(block[i]);
+            res[zigzag_table[i]] = round(block[i]);
         }
 
         return res;
@@ -248,7 +248,7 @@ namespace jpeg
         }
     }
 
-    void JpegEncoder::dctAndQuan()
+    void JpegEncoder::doDct()
     {
         int i;
         switch (quality)
@@ -393,17 +393,17 @@ namespace jpeg
         img_width = width;
 
         subsample();
-        dctAndQuan();
+        doDct();
         //for (int i = 0; i < 8; i++)
         //for (int j = 0; j < 8; j++)
         //       cout << y_block[0][i][j] << ' ';
         zigzagAndQuan();
+        for (int i = 0; i < 64; i++)
+            cout << y_zigzag[0][i] << ' ';
         deltaEncoding();
         RLE(y_zigzag, y_block_count, y_ac);
         RLE(cr_zigzag, c_block_count, cr_ac);
         RLE(cb_zigzag, c_block_count, cb_ac);
-        for (int i = 0; i < 64; i++)
-            cout << y_zigzag[0][i] << ' ';
         cout << '\n';
     }
 

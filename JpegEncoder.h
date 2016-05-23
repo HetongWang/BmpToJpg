@@ -63,7 +63,7 @@ namespace jpeg
         int newBytePos = 7;
 
         void subsample();
-        void dctAndQuan();
+        void doDct();
         void zigzagAndQuan();
         void deltaEncoding();
         void RLE(int **zigzag, int block_count, std::vector<std::vector<int>>&ac);
