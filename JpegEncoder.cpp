@@ -503,13 +503,14 @@ namespace jpeg
             int zero_amount = ac[ac_index][0];
             value = numberEncoding(ac[ac_index][1]);
             length = numberOfSetBits(abs(ac[ac_index][1]));
-            if (zero_amount == 0 && value == 0 && length == 1)
+            if (zero_amount == 0 && ac[ac_index][1] == 0)
+            // how to determine it is end of a block
             {
                 ac_amount = 63;
                 length = 0;
             }
 
-            WORD rleCode = (zero_amount | 0xf) << 4 + (length | 0xf);
+            WORD rleCode = (zero_amount << 4) + length;
             if (rleCode == 0)
             {
                 BitString code = ac_huffman[rleCode];
