@@ -44,14 +44,15 @@ namespace jpeg
             block[u][v] = F[u][v];
     }
 
-    void quantize(int *block, BYTE quan[64]) 
+    void quantize(double **block, BYTE quan[64]) 
     {
         int x, y;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < 8; i++)
+        for (int j = 0; j < 8; j++)
         {
-            block[i] = block[i] / quan[i];
-            if (block[i] > 2048 || block[i] < -2048) 
-                block[i] > 0 ? block[i] = 2048 : block[i] = -2048;
+            block[i][j] = block[i][j] / quan[zigzag_table[i * 8 + j]];
+            if (block[i][j] > 2048 || block[i][j] < -2048) 
+                block[i][j] > 0 ? block[i][j] = 2048 : block[i][j] = -2048;
         }
     }
 
@@ -248,7 +249,7 @@ namespace jpeg
         }
     }
 
-    void JpegEncoder::doDct()
+    void JpegEncoder::dctAndQuan()
     {
         int i;
         switch (quality)
@@ -276,22 +277,24 @@ namespace jpeg
         for (i = 0; i < y_block_count; i++)
         {
             dct(y_block[i]);
+            quantize(y_block[i], lum_quan);
         }
         for (i = 0; i < c_block_count; i++)
         {
             dct(cr_block[i]);
+            quantize(cr_block[i], croma_quan);
             dct(cb_block[i]);
+            quantize(cb_block[i], croma_quan);
         }
     }
 
-    void JpegEncoder::zigzagAndQuan()
+    void JpegEncoder::zigzag()
     {
         int i;
         y_zigzag = new int*[y_block_count];
         for (i = 0; i < y_block_count; i++)
         {
             y_zigzag[i] = zigzagTransform(y_block[i]);
-            quantize(y_zigzag[i], lum_quan);
         }
 
         cr_zigzag = new int *[c_block_count];
@@ -299,9 +302,7 @@ namespace jpeg
         for (i = 0; i < c_block_count; i++)
         {
             cr_zigzag[i] = zigzagTransform(cr_block[i]);
-            quantize(cr_zigzag[i], croma_quan);
             cb_zigzag[i] = zigzagTransform(cb_block[i]);
-            quantize(cb_zigzag[i], croma_quan);
         }
         
     }
@@ -393,11 +394,11 @@ namespace jpeg
         img_width = width;
 
         subsample();
-        doDct();
+        dctAndQuan();
         //for (int i = 0; i < 8; i++)
         //for (int j = 0; j < 8; j++)
         //       cout << y_block[0][i][j] << ' ';
-        zigzagAndQuan();
+        zigzag();
         for (int i = 0; i < 64; i++)
             cout << y_zigzag[0][i] << ' ';
         deltaEncoding();
