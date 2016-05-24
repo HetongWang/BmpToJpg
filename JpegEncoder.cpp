@@ -84,7 +84,8 @@ namespace jpeg
     int numberOfSetBits(int n)
     {
         int i = 2, res = 1;
-        while (abs(n) > i)
+        n = abs(n);
+        while (n >= i)
         {
             i *= 2;
             res++;
@@ -96,15 +97,17 @@ namespace jpeg
     {
         unsigned short res;
         int bits = numberOfSetBits(n);
-        res = abs(n);
         if (n < 0)
         {
+            res = abs(n);
             unsigned short t = 0;
             for (int i = 0; i < bits; i++)
                 t = (t << 1) + 1;
 
             res = t - res;
         }
+        else
+            res = n;
         return res;
     }
 
