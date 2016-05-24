@@ -234,18 +234,18 @@ namespace jpeg
                     cr_block[n][ii][jj] = 0;
 
                     if (img_i >= img_height && img_j >= img_width)
-                        cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v2;
+                        cb_block[n][ii][jj] = cb_block[n][ii - 1][jj - 1];
                     else if (img_i >= img_height)
-                        cb_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_j]).v2;
+                        cb_block[n][ii][jj] = cb_block[n][ii - 1][jj];
                     else if (img_j >= img_width)
-                        cb_block[n][ii][jj] = rgb2ycc(origin[img_i][img_width - 1]).v2;
+                        cb_block[n][ii][jj] = cb_block[n][ii][jj - 1];
 
                     if (img_i >= img_height && img_j >= img_width)
-                        cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_width - 1]).v3;
+                        cr_block[n][ii][jj] = cr_block[n][ii - 1][jj - 1];
                     else if (img_i >= img_height)
-                        cr_block[n][ii][jj] = rgb2ycc(origin[img_height - 1][img_j]).v3;
+                        cr_block[n][ii][jj] = cr_block[n][ii - 1][jj];
                     else if (img_j >= img_width)
-                        cr_block[n][ii][jj] = rgb2ycc(origin[img_i][img_width - 1]).v3;
+                        cr_block[n][ii][jj] = cr_block[n][ii][jj - 1];
                 }
             }
             n++;
@@ -397,13 +397,18 @@ namespace jpeg
         img_width = width;
 
         subsample();
-        dctAndQuan();
         //for (int i = 0; i < 8; i++)
         //for (int j = 0; j < 8; j++)
-        //       cout << y_block[0][i][j] << ' ';
+        //       cout << cr_block[0][i][j] << ' ';
+        //cout << '\n';
+
+        dctAndQuan();
         zigzag();
         for (int i = 0; i < 64; i++)
-            cout << y_zigzag[0][i] << ' ';
+            cout << cb_zigzag[0][i] << ' ';
+        for (int i = 0; i < 64; i++)
+            cout << cr_zigzag[0][i] << ' ';
+
         deltaEncoding();
         RLE(y_zigzag, y_block_count, y_ac);
         RLE(cr_zigzag, c_block_count, cr_ac);
